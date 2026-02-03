@@ -1,26 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
-import { useRouter } from "next/nevigation";
-import { axios } from "axios";
+import React, {  useEffect } from "react";
+import { useRouter } from "next/navigation";
+import axios  from "axios";
+import toast from "react-hot-toast";
 
 
 export default function LoginUpPage() {
+
+  const router = useRouter();
     const [user, setUser] = React.useState({
         email: "",
         password: ""
     });
+    const [buttonDisabled, setButtonDisabled] = React.useState(false);
+    const [loading,setLoading] = React.useState(false);
 
     const onLogin = async () =>{
 
+      try {
+        setLoading(true);
+        const response = await axios.post("/api/users/login", user);
+        console.log("Login successful", response.data);
+        toast.success("Login successful");
+        router.push("/profile");
+        
+      } catch (error:any) {
+        console.log("Login failed", error);
+        toast.error("Login failed. Please try again.");
+        
+      }
+
     }
+    useEffect(() => {
+        if(user.email.length>0 && user.password.length>0){
+            setButtonDisabled(false);
+        } else {
+            setButtonDisabled(true);
+        }
+    }, [user]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-grey-500">
         <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Login
+          {loading ? "Processing..." : "Login to Your Account"}
         </h2>
         
         <form className="space-y-4">
@@ -58,11 +83,11 @@ export default function LoginUpPage() {
           </div>
 
           <button
+            type="button"
           onClick={onLogin}
-            type="submit"
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium mt-6"
           >
-            Login
+            {buttonDisabled ? "Please fill all the fields" : "Login"}
           </button>
         </form>
 
