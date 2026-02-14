@@ -1,10 +1,17 @@
 import nodemailer from 'nodemailer';
 import User from "@/models/userModel.js";
-import bcryptjs from 'bcryptjs';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export const sendEmail = async ({email, emailType,userId}:any) =>{
     try {
-        const hashedToken = await bcryptjs.hash(userId.toString(), 10);
+
+        const token = crypto.randomBytes(32).toString("hex");
+
+        const hashedToken = crypto
+                            .createHash("sha256")
+                            .update(token)
+                            .digest("hex");
 
         const user = await User.findById(userId);
 
@@ -53,7 +60,7 @@ export const sendEmail = async ({email, emailType,userId}:any) =>{
                     </p>
 
                     <a 
-                        href="${process.env.DOMAIN}/verifyemail?token=${hashedToken}" 
+                        href="${process.env.DOMAIN}/verifyemail?token=${token}" 
                         style="
                         display: inline-block;
                         padding: 10px 20px;
@@ -73,7 +80,7 @@ export const sendEmail = async ({email, emailType,userId}:any) =>{
                     <p style="margin-top: 20px;">
                         Or copy and paste this link in your browser:
                         <br/>
-                        ${process.env.DOMAIN}/verifyemail?token=${hashedToken}
+                        ${process.env.DOMAIN}/verifyemail?token=${token}
                     </p>
 
                     <p>Need help? Just reply to this email — we'd love to help.</p>
