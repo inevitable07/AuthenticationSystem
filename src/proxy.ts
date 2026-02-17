@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
  
-// This function can be marked `async` if using `await` inside
+
 export function proxy(request: NextRequest) {
 
     const path = request.nextUrl.pathname;
-    const isPathPublic = path === "/login" || path === "/signup" || path === "/verifyemail";
+    const publicPaths = [
+              "/login", 
+              "/signup", 
+              "/verifyemail", 
+              "/forgotpassword", 
+              "/resetpassword"];
+    const isPathPublic = publicPaths.some((route) =>
+                                      path.startsWith(route)
+                                  );
 
     const token = request.cookies.get("token")?.value || '';
 
@@ -19,13 +27,15 @@ export function proxy(request: NextRequest) {
   
 }
  
-// See "Matching Paths" below to learn more
+
 export const config = {
   matcher: [
     "/",
     "/profile",
     "/login",
     "/signup",
-    "/verifyemail"
+    "/verifyemail",
+    "/forgotpassword",
+    "/resetpassword",
   ]
 }
