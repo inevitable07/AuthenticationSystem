@@ -59,8 +59,13 @@ export const sendEmail = async ({email, emailType,userId}:any) =>{
                         }:
                     </p>
 
+
                     <a 
-                        href="${process.env.DOMAIN}/verifyemail?token=${token}" 
+                        ${
+                            emailType === "VERIFY"
+                            ? `href="${process.env.DOMAIN}/verifyemail?token=${token}"`
+                            : `href="${process.env.DOMAIN}/passwordreset?token=${token}"`
+                        }
                         style="
                         display: inline-block;
                         padding: 10px 20px;
@@ -80,8 +85,11 @@ export const sendEmail = async ({email, emailType,userId}:any) =>{
                     <p style="margin-top: 20px;">
                         Or copy and paste this link in your browser:
                         <br/>
-                        ${process.env.DOMAIN}/verifyemail?token=${token}
-                    </p>
+                        ${emailType === "VERIFY"
+                            ? `${process.env.DOMAIN}/verifyemail?token=${token}`
+                            : `${process.env.DOMAIN}/passwordreset?token=${token}`
+                        }
+                    </p>    
 
                     <p>Need help? Just reply to this email — we'd love to help.</p>
                 </div>`,
