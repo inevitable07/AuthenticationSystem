@@ -8,12 +8,14 @@ connectDB();
 export async function POST(request: NextRequest) {
     try {
         const reqBody = await request.json();
-        const {token,newpassword} = reqBody;
+        const {token,newPassword} = reqBody;
         console.log("Incoming raw token:", token);
+
         const hashedToken = crypto                            
                             .createHash("sha256")
                             .update(token)
                             .digest("hex");
+
         console.log("Hashed token:", hashedToken);
         
         const user = await User.findOne({
@@ -23,9 +25,10 @@ export async function POST(request: NextRequest) {
         if(!user){
             return NextResponse.json({message: "Invalid or expired token"}, {status: 400});
         }
+        
         console.log(user);
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newpassword, salt);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
 
         user.password = hashedPassword;
         user.forgotPasswordToken = undefined;
@@ -34,6 +37,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({message: "Password reset successfully"}, {status: 200});
     } catch (error:any) {
+        console.log("Error in password reset:", error);
         return NextResponse.json({message: error.message}, {status: 500});
     }
 };
