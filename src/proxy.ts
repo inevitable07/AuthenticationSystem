@@ -11,9 +11,7 @@ export function proxy(request: NextRequest) {
               "/verifyemail", 
               "/forgotpassword", 
               "/resetpassword"];
-    const isPathPublic = publicPaths.some((route) =>
-                                      path.startsWith(route)
-                                  );
+    const isPathPublic = publicPaths.includes(path);
 
     const token = request.cookies.get("token")?.value || '';
 
