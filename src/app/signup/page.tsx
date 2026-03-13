@@ -1,124 +1,176 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios  from "axios";
+import axios from "axios";
 import toast from "react-hot-toast";
-
+import { User, Mail, Lock } from "lucide-react";
+import { motion } from "framer-motion";
+import AuthCard from "@/components/ui/AuthCard";
+import InputField from "@/components/ui/InputField";
+import Button from "@/components/ui/Button";
 
 export default function SignUpPage() {
+  const router = useRouter();
 
-    const router = useRouter();
+  const [user, setUser] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-    const [user, setUser] = React.useState({
-        username: "",
-        email: "",
-        password: ""
-    });
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    const [buttonDisabled, setButtonDisabled] = React.useState(false);
-    const [loading,setLoading] = React.useState(false);
+  const onSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (buttonDisabled) return;
 
-    const onSignUp = async () =>{
-      try {
-
-        setLoading(true);
-        const response = await axios.post("/api/users/signup", user);
-        console.log("Signup successful", response.data);
-        toast.success("Signup successful");
-        router.push("/login");
-
-      } catch (error: any) {
-        const message = error.response?.data?.message;
-        toast.error(message || "Signup failed");
-      }finally{
-        setLoading(false);
-      }
-
+    if (user.password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
     }
 
-    useEffect(() => {
-        if(user.email.length>0 && user.password.length>0 && user.username.length>0){
-            setButtonDisabled(false);
-        } else {
-            setButtonDisabled(true);
-        }
-    }, [user]);
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/users/signup", user);
+      console.log("Signup successful", response.data);
+      toast.success("Account created successfully");
+      router.push("/login");
+    } catch (error: any) {
+      const message = error.response?.data?.message;
+      toast.error(message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-grey-500">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          {loading ? "Processing..." : "Create an Account"}
-        </h2>
-        
-        <form className="space-y-4">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={user.username}
-              onChange={(e) => setUser({...user, username: e.target.value})}
-              className="w-full px-4 py-2 border  text-cyan-950 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your username"
-              required
-            />
-          </div>
+  useEffect(() => {
+    if (
+      user.email.length > 0 &&
+      user.password.length > 0 &&
+      user.username.length > 0 &&
+      confirmPassword.length > 0
+    ) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [user, confirmPassword]);
 
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={user.email}
-              onChange={(e) => setUser({...user, email:e.target.value})}
-              className="w-full px-4 py-2 border text-cyan-950 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
+  return (
+    <AuthCard 
+      title="Create Account" 
+      description="Join us and start exploring"
+      category="Registration"
+      colorTheme="purple"
+    >
+      <form onSubmit={onSignUp} className="space-y-6">
+        <div className="space-y-4">
+          <InputField
+            label="Username"
+            type="text"
+            value={user.username}
+            onChange={(e) => setUser({ ...user, username: e.target.value })}
+            onFocus={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.add("form-active");
+            }}
+            onBlur={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.remove("form-active");
+            }}
+            placeholder="johndoe"
+            icon={User}
+            required
+          />
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={user.password}
-              onChange={(e) => setUser({...user, password: e.target.value})}
-              className="w-full px-4 py-2 border  text-cyan-950 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your password"
-              required
-            />
-          </div>
+          <InputField
+            label="Email Address"
+            type="email"
+            value={user.email}
+            onChange={(e) => setUser({ ...user, email: e.target.value })}
+            onFocus={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.add("form-active");
+            }}
+            onBlur={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.remove("form-active");
+            }}
+            placeholder="name@example.com"
+            icon={Mail}
+            required
+          />
 
-          
-          <button
-          type="button"
-            onClick={onSignUp}  
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium mt-6"
-            
+          <InputField
+            label="Password"
+            type="password"
+            value={user.password}
+            onChange={(e) => setUser({ ...user, password: e.target.value })}
+            onFocus={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.add("form-active");
+            }}
+            onBlur={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.remove("form-active");
+            }}
+            placeholder="••••••••"
+            icon={Lock}
+            required
+          />
+
+          <InputField
+            label="Confirm Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            onFocus={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.add("form-active");
+            }}
+            onBlur={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.remove("form-active");
+            }}
+            placeholder="••••••••"
+            icon={Lock}
+            required
+            error={confirmPassword && user.password !== confirmPassword ? "Passwords do not match" : undefined}
+          />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="pt-4"
+        >
+          <Button
+            type="submit"
+            isLoading={loading}
+            disabled={buttonDisabled}
+            withArrow
           >
-            {buttonDisabled ? "Fill all fields" : "Sign Up"}
-          </button>
-        </form>
+            Create My Account
+          </Button>
+        </motion.div>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-            Log in
-            </Link>
-        </p>
-      </div>
-    </div>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="text-center text-sm text-slate-500"
+        >
+          Already have an account?{" "}
+          <Link href="/login" className="text-sky-400 hover:text-sky-300 font-bold transition-colors hover:underline">
+            Sign in
+          </Link>
+        </motion.p>
+      </form>
+    </AuthCard>
   );
-
 }
