@@ -14,7 +14,9 @@ export const sendEmail = async ({email, emailType,userId}:any) =>{
                             .digest("hex");
 
         const user = await User.findById(userId);
-
+        if(!user){
+            throw new Error("User not found");
+        }
 
         if(emailType === 'VERIFY'){
             await User.findByIdAndUpdate(userId, {
@@ -36,7 +38,7 @@ export const sendEmail = async ({email, emailType,userId}:any) =>{
         });
 
         const mailOptions = {
-            from: "authentication.app@example.com",
+            from: `"Authentication App" <${process.env.MAIL_USER}>`,
             to: email,
             subject: emailType === 'VERIFY' ? 'Verify your email' : 'Reset your password',
             html: `

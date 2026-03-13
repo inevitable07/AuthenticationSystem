@@ -1,30 +1,176 @@
 @import "tailwindcss";
 
-/* @import "tailwindcss/preflight";
-@import "tailwindcss/utilities"; */
-
-
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Deep, Dark Background Palette */
+  --background: #000000; /* Pure black */
+  --foreground: #f1f5f9; /* Slate-100 */
+
+  /* Premium Glass Card Variables */
+  --card-bg: rgba(15, 23, 42, 0.4); /* Darker, more subtle glass */
+  --card-border: rgba(148, 163, 184, 0.1); /* Very subtle border */
+  --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* Deep shadow */
+  
+  /* Input Variables */
+  --input-bg: rgba(30, 41, 59, 0.4);
+  --input-border: rgba(148, 163, 184, 0.1);
+  --input-focus-border: rgba(56, 189, 248, 0.5); /* Sky-400 */
+
+  /* Glow Effects */
+  --primary-glow: rgba(56, 189, 248, 0.15);
+  --accent-glow: rgba(14, 165, 233, 0.3); /* Sky-500 */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html,
+body {
+  background: #000000 !important;
+  color: var(--foreground);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px); 
+    border: 1px solid var(--card-border);
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset, 
+      var(--card-shadow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(148, 163, 184, 0.25);
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+      0 0 30px rgba(56, 189, 248, 0.2),
+      0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  .glass-card.form-active {
+    transform: translateY(-6px);
+    border-color: rgba(148, 163, 184, 0.25);
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+      0 0 30px rgba(56, 189, 248, 0.2),
+      0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  .glass-input {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-input:focus {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 4px var(--primary-glow);
+    outline: none;
+  }
+
+  /* Smooth animation utilities */
+  .animate-slide-up-fade {
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUpFade {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-glow-pulse {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Text glow effect */
+  .text-glow {
+    background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Premium spacing utilities */
+  .card-padding {
+    padding: 2rem;
+  }
+
+  @media (min-width: 640px) {
+    .card-padding {
+      padding: 2.5rem;
+    }
+  }
+
+  /* Arrow animation */
+  .arrow-slide {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .group:hover .arrow-slide {
+    transform: translateX(4px);
+  }
+
+  /* Bottom accent line animation */
+  .accent-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.6), transparent);
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover .accent-line {
+    opacity: 1;
+  }
+
+  .glass-card.form-active .accent-line {
+    opacity: 1;
+  }
+
+  /* Decorative blur */
+  .blur-glow {
+    filter: blur(40px);
+    opacity: 0.5;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+

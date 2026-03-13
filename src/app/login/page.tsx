@@ -1,108 +1,135 @@
 "use client";
 
 import Link from "next/link";
-import React, {  useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios  from "axios";
+import axios from "axios";
 import toast from "react-hot-toast";
+import { Mail, Lock } from "lucide-react";
+import { motion } from "framer-motion";
+import AuthCard from "@/components/ui/AuthCard";
+import InputField from "@/components/ui/InputField";
+import Button from "@/components/ui/Button";
 
-
-export default function LoginUpPage() {
-
+export default function LoginPage() {
   const router = useRouter();
-    const [user, setUser] = React.useState({
-        email: "",
-        password: ""
-    });
-    const [buttonDisabled, setButtonDisabled] = React.useState(false);
-    const [loading,setLoading] = React.useState(false);
+  const [user, setUser] = useState({
+    email: "",
+    password: "",
+  });
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    const onLogin = async () =>{
+  const onLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (buttonDisabled) return;
 
-      try {
-        setLoading(true);
-        const response = await axios.post("/api/users/login", user);
-        console.log("Login successful", response.data);
-        toast.success("Login successful");
-        router.push("/profile");
-        
-      } catch (error:any) {
-        console.log("Login failed", error);
-        toast.error("Login failed. Please try again.");
-        
-      }
-
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/users/login", user);
+      console.log("Login successful", response.data);
+      toast.success("Login successful");
+      router.push("/profile");
+    } catch (error: any) {
+      console.log("Login failed", error);
+      toast.error(error.response?.data?.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    useEffect(() => {
-        if(user.email.length>0 && user.password.length>0){
-            setButtonDisabled(false);
-        } else {
-            setButtonDisabled(true);
-        }
-    }, [user]);
+  };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-grey-500">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          {loading ? "Processing..." : "Login to Your Account"}
-        </h2>
-        
-        <form className="space-y-4">
+  useEffect(() => {
+    if (user.email.length > 0 && user.password.length > 0) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [user]);
 
-          {/* Email */}
+  return (
+    <AuthCard 
+      title="Welcome Back" 
+      description="Sign in to your account to continue"
+      category="Authentication"
+      colorTheme="blue"
+    >
+      <form onSubmit={onLogin} className="space-y-6">
+        <div className="space-y-4">
+          <InputField
+            label="Email Address"
+            type="email"
+            value={user.email}
+            onChange={(e) => setUser({ ...user, email: e.target.value })}
+            onFocus={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.add("form-active");
+            }}
+            onBlur={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.remove("form-active");
+            }}
+            placeholder="name@example.com"
+            icon={Mail}
+            required
+          />
+
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={user.email}
-              onChange={(e) => setUser({...user, email:e.target.value})}
-              className="w-full px-4 py-2 border text-cyan-950 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
+            <InputField
+              label="Password"
               type="password"
-              id="password"
               value={user.password}
-              onChange={(e) => setUser({...user, password: e.target.value})}
-              className="w-full px-4 py-2 border  text-cyan-950 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your password"
+              onChange={(e) => setUser({ ...user, password: e.target.value })}
+              onFocus={(e) => {
+                const cardElement = document.querySelector(".glass-card");
+                cardElement?.classList.add("form-active");
+              }}
+              onBlur={(e) => {
+                const cardElement = document.querySelector(".glass-card");
+                cardElement?.classList.remove("form-active");
+              }}
+              placeholder="••••••••"
+              icon={Lock}
               required
             />
-            <Link href="/forgotpassword" className="text-sm text-blue-600 hover:text-blue-700 mt-2 block">
-              Forgot Password?
-            </Link>
-
+            <div className="flex justify-end mt-2">
+              <Link 
+                href="/forgotpassword" 
+                className="text-xs font-semibold text-sky-400 hover:text-sky-300 transition-colors hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
+        </div>
 
-          <button
-            type="button"
-          onClick={onLogin}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium mt-6"
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="pt-4"
+        >
+          <Button
+            type="submit"
+            isLoading={loading}
+            disabled={buttonDisabled}
+            withArrow
           >
-            {buttonDisabled ? "Please fill all the fields" : "Login"}
-          </button>
-        </form>
+            Continue to Dashboard
+          </Button>
+        </motion.div>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
-            Sign up
-          </a>
-        </p>
-      </div>
-    </div>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="text-center text-sm text-slate-500"
+        >
+          Don't have an account?{" "}
+          <Link href="/signup" className="text-sky-400 hover:text-sky-300 font-bold transition-colors hover:underline">
+            Create one
+          </Link>
+        </motion.p>
+      </form>
+    </AuthCard>
   );
-
 }

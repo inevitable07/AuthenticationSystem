@@ -1,89 +1,162 @@
 "use client";
-import axios from "axios";
-import React,{useEffect, useState } from "react"; 
+
 import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { Lock } from "lucide-react";
+import { motion } from "framer-motion";
+import AuthCard from "@/components/ui/AuthCard";
+import InputField from "@/components/ui/InputField";
+import Button from "@/components/ui/Button";
 
 export default function PasswordResetPage() {
+  const router = useRouter();
+  const [token, setToken] = useState("");
+  const [passwordData, setPasswordData] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [loading, setLoading] = useState(false);
 
-    const router = useRouter();
-    const [newPassword, setNewPassword] = useState("");
-    const [token, setToken] = useState("");
-    const [verified, setVerified] = useState(false);
-    const [error, setError] = useState(false);
-    const [loading, setLoading] = useState(false);
-
-    const resetPassword = async () => {
-        setError(false);
-        setVerified(false);
-        if(!newPassword || newPassword.length < 6){
-            setError(true);
-            return;
-        }
-        if (!token) {
-            setError(true);
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const response = await axios.post("/api/users/passwordreset", 
-                { token, newPassword });
-            if (response.status === 200) {
-                setVerified(true);
-                setNewPassword("");
-                setTimeout(() => {
-                    router.push("/login");
-                }, 3000);
-            }
-            
-            
-        } catch (error:any) {
-            setError(true);
-            console.log(error);
-            console.error(error.response?.data || error.message);
-        }finally {
-            setLoading(false);
-        }
+  useEffect(() => {
+    // Extract token from URL
+    const urlToken = window.location.search.split("=")[1];
+    if (urlToken) {
+      setToken(urlToken);
+    } else {
+      toast.error("Invalid or missing token");
     }
-    useEffect(() => {
-            const urlToken = window.location.search.split("=")[1];
-            setToken(urlToken || "");
-        }, []);
+  }, []);
 
-        return(
-        <div className="flex flex-col items-center justify-center min-h-screen py-2">
+  const resetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-            <h1 className="text-4xl">Reset Password</h1>
-            <h2 className="p-2 bg-amber-600 text-black">{token? `${token}`:"No Token Found"}</h2>
-            <input
-              type="password"
-              id="newPassword"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-2 border text-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-4"
-              placeholder="Enter your new password"
-              required
-            />
-            <button
-              onClick={resetPassword}
-              disabled={loading || !token || !newPassword}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 font-medium mt-6"
-            >
-              {loading ? "Resetting..." : "Reset Password"}
-            </button>
-            {verified &&(
-                <div className="p-4 bg-green-600 text-white rounded">
-                    <h2 className="text-2xl">Password Reset Successfully!</h2>
-                    <p>You can now <Link href="/login" className="underline">login</Link>.</p>
-                </div>
-            )}
-            {error &&(
-                <div className="p-4 bg-red-600 text-black rounded">
-                    <h2 className="text-2xl">Error While Resetting Password</h2>
-                </div>
-            )}
+    if (!token) {
+      toast.error("Invalid reset token");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/users/passwordreset", {
+        token,
+        newPassword: passwordData.newPassword,
+      });
+
+      if (response.status === 200) {
+        toast.success("Password reset successfully");
+        setPasswordData({ newPassword: "", confirmPassword: "" });
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
+      }
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error.response?.data?.message || "Error while resetting password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AuthCard
+      title="Create New Password"
+      description="Enter a strong password to secure your account"
+      category="Security"
+      colorTheme="pink"
+    >
+      <form onSubmit={resetPassword} className="space-y-6">
+        <div className="space-y-4">
+          <InputField
+            label="New Password"
+            type="password"
+            value={passwordData.newPassword}
+            onChange={(e) =>
+              setPasswordData({ ...passwordData, newPassword: e.target.value })
+            }
+            onFocus={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.add("form-active");
+            }}
+            onBlur={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.remove("form-active");
+            }}
+            placeholder="••••••••"
+            icon={Lock}
+            required
+          />
+
+          <InputField
+            label="Confirm Password"
+            type="password"
+            value={passwordData.confirmPassword}
+            onChange={(e) =>
+              setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+            }
+            onFocus={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.add("form-active");
+            }}
+            onBlur={(e) => {
+              const cardElement = document.querySelector(".glass-card");
+              cardElement?.classList.remove("form-active");
+            }}
+            placeholder="••••••••"
+            icon={Lock}
+            required
+            error={
+              passwordData.confirmPassword &&
+              passwordData.newPassword !== passwordData.confirmPassword
+                ? "Passwords do not match"
+                : undefined
+            }
+          />
         </div>
-        )
-    
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="pt-2"
+        >
+          <Button
+            type="submit"
+            isLoading={loading}
+            disabled={!token || !passwordData.newPassword}
+            withArrow
+          >
+            Update Password
+          </Button>
+        </motion.div>
+
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="text-center text-sm text-slate-500"
+        >
+          Back to login?{" "}
+          <Link
+            href="/login"
+            className="text-sky-400 hover:text-sky-300 font-bold transition-colors hover:underline"
+          >
+            Sign in here
+          </Link>
+        </motion.p>
+      </form>
+    </AuthCard>
+  );
 }
